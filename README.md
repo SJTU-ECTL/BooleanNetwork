@@ -7,3 +7,7 @@ A simple data structure for boolean networks.
 - [ ] Simplify the headers for bnet library
 - [ ] Create C++ interface for bnet library
 - [ ] To be continued
+
+### On going
+- Analyzing bnet headers
+- CPP interface create
