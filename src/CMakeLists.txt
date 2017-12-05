@@ -1,5 +1,12 @@
-set(bnet_source_files bnet.c)
-set(bnet_header_files bnet.h config.h st.h util.h)
+set(bnet_source_files bnet.cpp
+        cudd_bnet.c
+        safe_mem.c
+        st.c
+        strsav.c
+        ucbqsort.c
+        config.h
+        util.h)
+set(bnet_header_files bnet.h cudd_bnet.h config.h st.h util.h)
 
 add_library(bnet_shared SHARED ${bnet_source_files})
 add_library(bnet_static STATIC ${bnet_source_files})

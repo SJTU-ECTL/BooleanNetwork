@@ -43,7 +43,7 @@
 
 */
 
-#include "bnet.h"
+#include "cudd_bnet.h"
 
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
