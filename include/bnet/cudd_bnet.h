@@ -118,6 +118,7 @@ typedef struct BnetNode {
     int ninp;		/**< number of inputs to the node */
     int nfo;		/**< number of fanout nodes for this node */
     char **inputs;	/**< input names */
+    char **outputs; /**< output names */
     BnetTabline *f;	/**< truth table for this node */
     int polarity;	/**< f is the onset (0) or the offset (1) */
     int active;		/**< node has variable associated to it (1) or not (0) */

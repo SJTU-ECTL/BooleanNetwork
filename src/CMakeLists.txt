@@ -1,5 +1,5 @@
 set(bnet_source_files bnet.cpp
-        cudd_bnet.c
+        cudd_bnet.cpp
         safe_mem.c
         st.c
         strsav.c

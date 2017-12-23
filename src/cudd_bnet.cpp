@@ -46,6 +46,12 @@
 #include "cudd_bnet.h"
 
 /*---------------------------------------------------------------------------*/
+/* Implementation of BnetNode->outputs                                       */
+#include <map>
+#include <vector>
+/*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
@@ -139,24 +145,30 @@ Bnet_ReadNetwork(
     int i, j, n;
     BnetNetwork *net;
     BnetNode *newnode;
-    BnetNode *lastnode = NULL;
+    BnetNode *lastnode = nullptr;
     BnetTabline *newline;
     BnetTabline *lastline;
-    char ***latches = NULL;
+    char ***latches = nullptr;
     int maxlatches = 0;
     int exdc = 0;
     BnetNode	*node;
     int	count;
 
+/*---------------------------------------------------------------------------*/
+/* Implementation of BnetNode->outputs                                       */
+    std::map<std::string, std::vector<std::string> > name_outputs;
+    std::map<std::string, std::vector<std::string> >::iterator it;
+/*---------------------------------------------------------------------------*/
+
     /* Allocate network object and initialize symbol table. */
     net = ALLOC(BnetNetwork,1);
-    if (net == NULL) goto failure;
+    if (net == nullptr) goto failure;
     memset((char *) net, 0, sizeof(BnetNetwork));
     net->hash = st_init_table((st_compare_t) strcmp, st_strhash);
-    if (net->hash == NULL) goto failure;
+    if (net->hash == nullptr) goto failure;
 
     savestring = readString(fp);
-    if (savestring == NULL) goto failure;
+    if (savestring == nullptr) goto failure;
     net->nlatches = 0;
     while (strcmp(savestring, ".model") == 0 ||
 	strcmp(savestring, ".inputs") == 0 ||
@@ -170,10 +182,10 @@ Bnet_ReadNetwork(
 	    FREE(savestring);
 	    /* Read network name. */
 	    savestring = readString(fp);
-	    if (savestring == NULL) goto failure;
+	    if (savestring == nullptr) goto failure;
 	    if (savestring[0] == '.') {
 		net->name = ALLOC(char,  1);
-		if (net->name == NULL) goto failure;
+		if (net->name == nullptr) goto failure;
                 net->name[0] = '\0';
 	    } else {
 		net->name = savestring;
@@ -183,7 +195,7 @@ Bnet_ReadNetwork(
 	    FREE(savestring);
 	    /* Read input names. */
 	    list = readList(fp,&n);
-	    if (list == NULL) goto failure;
+	    if (list == nullptr) goto failure;
 	    if (pr > 2) printList(list,n);
 	    /* Expect at least one input. */
 	    if (n < 1) {
@@ -195,7 +207,7 @@ Bnet_ReadNetwork(
 		    FREE(list[i]);
 		FREE(list);
 		savestring = readString(fp);
-		if (savestring == NULL) goto failure;
+		if (savestring == nullptr) goto failure;
 		continue;
 	    }
 	    if (net->ninputs) {
@@ -210,17 +222,21 @@ Bnet_ReadNetwork(
 	    for (i = 0; i < n; i++) {
 		newnode = ALLOC(BnetNode,1);
 		memset((char *) newnode, 0, sizeof(BnetNode));
-		if (newnode == NULL) goto failure;
+		if (newnode == nullptr) goto failure;
 		newnode->name = list[i];
-		newnode->inputs = NULL;
+		newnode->inputs = nullptr;
+/*---------------------------------------------------------------------------*/
+/* Implementation of BnetNode->outputs                                       */
+		newnode->outputs = nullptr;
+/*---------------------------------------------------------------------------*/
 		newnode->type = BNET_INPUT_NODE;
 		newnode->active = FALSE;
 		newnode->nfo = 0;
 		newnode->ninp = 0;
-		newnode->f = NULL;
+		newnode->f = nullptr;
 		newnode->polarity = 0;
-		newnode->next = NULL;
-		if (lastnode == NULL) {
+		newnode->next = nullptr;
+		if (lastnode == nullptr) {
 		    net->nodes = newnode;
 		} else {
 		    lastnode->next = newnode;
@@ -237,7 +253,7 @@ Bnet_ReadNetwork(
 	    FREE(savestring);
 	    /* Read output names. */
 	    list = readList(fp,&n);
-	    if (list == NULL) goto failure;
+	    if (list == nullptr) goto failure;
 	    if (pr > 2) printList(list,n);
 	    if (n < 1) {
 		(void) fprintf(stdout,"Empty .outputs list.\n");
@@ -248,7 +264,7 @@ Bnet_ReadNetwork(
 		    FREE(list[i]);
 		FREE(list);
 		savestring = readString(fp);
-		if (savestring == NULL) goto failure;
+		if (savestring == nullptr) goto failure;
 		continue;
 	    }
 	    if (net->noutputs) {
@@ -268,11 +284,11 @@ Bnet_ReadNetwork(
 	} else if (strcmp(savestring,".latch") == 0) {
 	    FREE(savestring);
 	    newnode = ALLOC(BnetNode,1);
-	    if (newnode == NULL) goto failure;
+	    if (newnode == nullptr) goto failure;
 	    memset((char *) newnode, 0, sizeof(BnetNode));
 	    newnode->type = BNET_PRESENT_STATE_NODE;
 	    list = readList(fp,&n);
-	    if (list == NULL) goto failure;
+	    if (list == nullptr) goto failure;
 	    if (pr > 2) printList(list,n);
 	    /* Expect three names. */
 	    if (n != 3) {
@@ -281,14 +297,14 @@ Bnet_ReadNetwork(
 		goto failure;
 	    }
 	    newnode->name = list[1];
-	    newnode->inputs = NULL;
+	    newnode->inputs = nullptr;
 	    newnode->ninp = 0;
-	    newnode->f = NULL;
+	    newnode->f = nullptr;
 	    newnode->active = FALSE;
 	    newnode->nfo = 0;
 	    newnode->polarity = 0;
-	    newnode->next = NULL;
-	    if (lastnode == NULL) {
+	    newnode->next = nullptr;
+	    if (lastnode == nullptr) {
 		net->nodes = newnode;
 	    } else {
 		lastnode->next = newnode;
@@ -305,14 +321,14 @@ Bnet_ReadNetwork(
 	    latches[net->nlatches] = list;
 	    net->nlatches++;
 	    savestring = readString(fp);
-	    if (savestring == NULL) goto failure;
+	    if (savestring == nullptr) goto failure;
 	} else if (strcmp(savestring,".names") == 0) {
 	    FREE(savestring);
 	    newnode = ALLOC(BnetNode,1);
 	    memset((char *) newnode, 0, sizeof(BnetNode));
-	    if (newnode == NULL) goto failure;
+	    if (newnode == nullptr) goto failure;
 	    list = readList(fp,&n);
-	    if (list == NULL) goto failure;
+	    if (list == nullptr) goto failure;
 	    if (pr > 2) printList(list,n);
 	    /* Expect at least one name (the node output). */
 	    if (n < 1) {
@@ -321,6 +337,24 @@ Bnet_ReadNetwork(
 	    }
 	    newnode->name = list[n-1];
 	    newnode->inputs = list;
+/*---------------------------------------------------------------------------*/
+/* Implementation of BnetNode->outputs                                       */
+        newnode->outputs = nullptr;
+        for(i = 0; i < n-1; i++) {
+            std::string input(newnode->inputs[i]);
+            std::string output(newnode->name);
+            it = name_outputs.find(input);
+            if(it == name_outputs.end()) {
+                std::vector<std::string> outputs;
+                outputs.push_back(output);
+                name_outputs.insert(
+                        std::pair<std::string, std::vector<std::string>>
+                                (input, outputs));
+            }
+            else
+                it->second.push_back(output);
+        }
+/*---------------------------------------------------------------------------*/
 	    newnode->ninp = n-1;
 	    newnode->active = FALSE;
 	    newnode->nfo = 0;
@@ -336,15 +370,15 @@ Bnet_ReadNetwork(
 	    } else {
 		newnode->type = BNET_CONSTANT_NODE;
 	    }
-	    newnode->next = NULL;
-	    if (lastnode == NULL) {
+	    newnode->next = nullptr;
+	    if (lastnode == nullptr) {
 		net->nodes = newnode;
 	    } else {
 		lastnode->next = newnode;
 	    }
 	    lastnode = newnode;
 	    /* Read node function. */
-	    newnode->f = NULL;
+	    newnode->f = nullptr;
 	    if (exdc) {
 		newnode->exdc_flag = 1;
 		node = net->nodes;
@@ -358,14 +392,14 @@ Bnet_ReadNetwork(
 		}
 	    }
 	    savestring = readString(fp);
-	    if (savestring == NULL) goto failure;
-	    lastline = NULL;
+	    if (savestring == nullptr) goto failure;
+	    lastline = nullptr;
 	    while (savestring[0] != '.') {
 		/* Reading a table line. */
 		newline = ALLOC(BnetTabline,1);
-		if (newline == NULL) goto failure;
-		newline->next = NULL;
-		if (lastline == NULL) {
+		if (newline == nullptr) goto failure;
+		newline->next = nullptr;
+		if (lastline == nullptr) {
 		    newnode->f = newline;
 		} else {
 		    lastline->next = newline;
@@ -376,14 +410,14 @@ Bnet_ReadNetwork(
 		    newline->values = savestring;
 		    /* Read output 1 or 0. */
 		    savestring = readString(fp);
-		    if (savestring == NULL) goto failure;
+		    if (savestring == nullptr) goto failure;
 		} else {
-		    newline->values = NULL;
+		    newline->values = nullptr;
 		}
 		if (savestring[0] == '0') newnode->polarity = 1;
 		FREE(savestring);
 		savestring = readString(fp);
-		if (savestring == NULL) goto failure;
+		if (savestring == nullptr) goto failure;
 	    }
 	} else if (strcmp(savestring,".exdc") == 0) {
 	    FREE(savestring);
@@ -394,12 +428,12 @@ Bnet_ReadNetwork(
 	}
 	if ((!savestring) || savestring[0] != '.')
 	    savestring = readString(fp);
-	if (savestring == NULL) goto failure;
+	if (savestring == nullptr) goto failure;
     }
 
     /* Put nodes in symbol table. */
     newnode = net->nodes;
-    while (newnode != NULL) {
+    while (newnode != nullptr) {
 	int retval = st_insert(net->hash,newnode->name,(char *) newnode);
 	if (retval == ST_OUT_OF_MEM) {
 	    goto failure;
@@ -452,7 +486,7 @@ Bnet_ReadNetwork(
     ** each fanin.
     */
     newnode = net->nodes;
-    while (newnode != NULL) {
+    while (newnode != nullptr) {
 	BnetNode *auxnd;
 	for (i = 0; i < newnode->ninp; i++) {
 	    if (!st_lookup(net->hash,newnode->inputs[i],(void **)&auxnd)) {
@@ -464,6 +498,27 @@ Bnet_ReadNetwork(
 	newnode = newnode->next;
     }
 
+/*---------------------------------------------------------------------------*/
+/* Implementation of BnetNode->outputs                                       */
+    for (newnode = net->nodes; newnode != nullptr; newnode = newnode->next) {
+        std::string name_str(newnode->name);
+        it = name_outputs.find(name_str);
+        if(it != name_outputs.end() && newnode->nfo > 0) {
+            std::vector<std::string> outputs = it->second;
+            newnode->outputs = ALLOC(char *, outputs.size());
+            for(i = 0; i < outputs.size(); i++)
+            {
+                std::string str = outputs[i];
+                auto *cc = (char*)malloc(str.size()+1);
+                int j;
+                for(j = 0; j < str.size(); j++)  cc[j] = str[j];
+                cc[str.size()] = '\0';
+                newnode->outputs[i] = cc;
+            }
+        }
+    }
+/*---------------------------------------------------------------------------*/
+
     if (!bnetSetLevel(net)) goto failure;
 
     return(net);
@@ -471,7 +526,7 @@ Bnet_ReadNetwork(
 failure:
     /* Here we should clean up the mess. */
     (void) fprintf(stdout,"Error in reading network from file.\n");
-    return(NULL);
+    return(nullptr);
 
 } /* end of Bnet_ReadNetwork */
 
@@ -495,7 +550,7 @@ Bnet_PrintNetwork(
     BnetTabline *tl;
     int i;
 
-    if (net == NULL) return;
+    if (net == nullptr) return;
 
     (void) fprintf(stdout,".model %s\n", net->name);
     (void) fprintf(stdout,".inputs");
@@ -507,7 +562,7 @@ Bnet_PrintNetwork(
 	printList(net->latches[i],3);
     }
     nd = net->nodes;
-    while (nd != NULL) {
+    while (nd != nullptr) {
 	if (nd->type != BNET_INPUT_NODE && nd->type != BNET_PRESENT_STATE_NODE) {
 	    (void) fprintf(stdout,".names");
 	    for (i = 0; i < nd->ninp; i++) {
@@ -515,8 +570,8 @@ Bnet_PrintNetwork(
 	    }
 	    (void) fprintf(stdout," %s\n",nd->name);
 	    tl = nd->f;
-	    while (tl != NULL) {
-		if (tl->values != NULL) {
+	    while (tl != nullptr) {
+		if (tl->values != nullptr) {
 		    (void) fprintf(stdout,"%s %d\n",tl->values,
 		    1 - nd->polarity);
 		} else {
@@ -571,19 +626,28 @@ Bnet_FreeNetwork(
     }
     if (net->nlatches) FREE(net->latches);
     node = net->nodes;
-    while (node != NULL) {
+    while (node != nullptr) {
 	nextnode = node->next;
 	if (node->type != BNET_PRESENT_STATE_NODE)
 	    FREE(node->name);
 	for (i = 0; i < node->ninp; i++) {
 	    FREE(node->inputs[i]);
 	}
-	if (node->inputs != NULL) {
+	if (node->inputs != nullptr) {
 	    FREE(node->inputs);
 	}
-	/* Free the function table. */
+/*---------------------------------------------------------------------------*/
+/* Implementation of BnetNode->outputs                                       */
+    for (i = 0; i < node->nfo; i++) {
+        FREE(node->outputs[i]);
+    }
+    if (node->outputs != nullptr) {
+        FREE(node->outputs);
+    }
+/*---------------------------------------------------------------------------*/
+    /* Free the function table. */
 	line = node->f;
-	while (line != NULL) {
+	while (line != nullptr) {
 	    nextline = line->next;
 	    FREE(line->values);
 	    FREE(line);
@@ -593,7 +657,7 @@ Bnet_FreeNetwork(
 	node = nextnode;
     }
     st_free_table(net->hash);
-    if (net->slope != NULL) FREE(net->slope);
+    if (net->slope != nullptr) FREE(net->slope);
     FREE(net);
 
 } /* end of Bnet_FreeNetwork */
@@ -631,17 +695,17 @@ readString(
 
     while (!CurPos) {
 	if (!fgets(BuffLine, MAXLENGTH, fp))
-	    return(NULL);
+	    return(nullptr);
 	BuffLine[strlen(BuffLine) - 1] = '\0';
 	CurPos = strtok(BuffLine, " \t");
-	if (CurPos && CurPos[0] == '#') CurPos = (char *)NULL;
+	if (CurPos && CurPos[0] == '#') CurPos = (char *) nullptr;
     }
     length = strlen(CurPos);
     savestring = ALLOC(char,length+1);
-    if (savestring == NULL)
-	return(NULL);
+    if (savestring == nullptr)
+	return(nullptr);
     strcpy(savestring,CurPos);
-    CurPos = strtok(NULL, " \t");
+    CurPos = strtok(nullptr, " \t");
     return(savestring);
 
 } /* end of readString */
@@ -681,20 +745,20 @@ readList(
 
     while (CurPos) {
 	if (strcmp(CurPos, "\\") == 0) {
-	    CurPos = (char *)NULL;
+	    CurPos = (char *) nullptr;
 	    while (!CurPos) {
-		if (!fgets(BuffLine, MAXLENGTH, fp)) return(NULL);
+		if (!fgets(BuffLine, MAXLENGTH, fp)) return(nullptr);
 		BuffLine[strlen(BuffLine) - 1] = '\0';
 		CurPos = strtok(BuffLine, " \t");
 	    }
 	}
 	length = strlen(CurPos);
 	savestring = ALLOC(char,length+1);
-	if (savestring == NULL) return(NULL);
+	if (savestring == nullptr) return(nullptr);
 	strcpy(savestring,CurPos);
 	stack[count] = savestring;
 	count++;
-	CurPos = strtok(NULL, " \t");
+	CurPos = strtok(nullptr, " \t");
     }
     list = ALLOC(char *, count);
     for (i = 0; i < count; i++)
@@ -754,15 +818,15 @@ bnetGenerateNewNames(
     char name[256];
     int i;
 
-    if (n < 1) return(NULL);
+    if (n < 1) return(nullptr);
 
     list = ALLOC(char *,n);
-    if (list == NULL) return(NULL);
+    if (list == nullptr) return(nullptr);
     for (i = 0; i < n; i++) {
 	do {
 	    sprintf(name, "var%d", newNameNumber);
 	    newNameNumber++;
-	} while (hash != NULL && st_is_member(hash,name));
+	} while (hash != nullptr && st_is_member(hash,name));
 	list[i] = util_strsav(name);
     }
 
@@ -844,14 +908,14 @@ bnetSetLevel(
     ** calls to bnetLevelDFS. However, this approach guarantees that
     ** all nodes will be reached ven if there are dangling outputs. */
     node = net->nodes;
-    while (node != NULL) {
+    while (node != nullptr) {
 	if (!bnetLevelDFS(net,node)) return(0);
 	node = node->next;
     }
 
     /* Clear visited flags. */
     node = net->nodes;
-    while (node != NULL) {
+    while (node != nullptr) {
 	node->visited = 0;
 	node = node->next;
     }
@@ -919,12 +983,12 @@ bnetOrderRoots(
 {
     int i, noutputs;
     BnetNode *node;
-    BnetNode **nodes = NULL;
+    BnetNode **nodes = nullptr;
 
     /* Initialize data structures. */
     noutputs = net->noutputs;
     nodes = ALLOC(BnetNode *, noutputs);
-    if (nodes == NULL) goto endgame;
+    if (nodes == nullptr) goto endgame;
 
     /* Find output names and levels. */
     for (i = 0; i < net->noutputs; i++) {
@@ -940,8 +1004,8 @@ bnetOrderRoots(
     return(nodes);
 
 endgame:
-    if (nodes != NULL) FREE(nodes);
-    return(NULL);
+    if (nodes != nullptr) FREE(nodes);
+    return(nullptr);
 
 } /* end of bnetOrderRoots */
 

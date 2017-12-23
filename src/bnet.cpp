@@ -13,8 +13,34 @@ BooleanNetwork::~BooleanNetwork() {
     Bnet_FreeNetwork(net);
 }
 
-void BooleanNetwork::PrintNetwork() {
+/**
+ * @brief print the BooleanNetwork(for testing purpose)
+ */
+
+void BooleanNetwork::printNetwork() const {
     Bnet_PrintNetwork(net);
+}
+
+/**
+ * @brief get the linked list of nodes in BnetNetwork
+ * @return the linked list of nodes in BnetNetwork
+ */
+
+BnetNode *BooleanNetwork::getNodesList() const {
+    return net->nodes;
+}
+
+/**
+ * @brief get the BnetNode in BnetNetwork by its name
+ * @return the BnetNode
+ */
+
+BnetNode *BooleanNetwork::getNodebyName(const std::string name) const {
+    BnetNode *node = nullptr;
+    if (st_lookup(net->hash, name.c_str(), (void **) &node))
+        return node;
+    else
+        return nullptr;
 }
 
 static FILE *open_file(const char *filename, const char *mode) {
