@@ -112,7 +112,7 @@ typedef struct BnetTabline {
  ** currently valid.  (It is indeed possible for an index to be
  ** associated to different nodes at different times.)
  */
-typedef struct BnetNode {
+typedef struct _BnetNode {
     char *name;		/**< name of the output signal */
     int type;		/**< input, internal, constant, ... */
     int ninp;		/**< number of inputs to the node */
@@ -124,17 +124,17 @@ typedef struct BnetNode {
     int active;		/**< node has variable associated to it (1) or not (0) */
     int var;		/**< %DD variable index associated to this node */
     int exdc_flag;	/**< whether an exdc node or not */
-    struct BnetNode *exdc; /**< pointer to exdc of dd node */
+    struct _BnetNode *exdc; /**< pointer to exdc of dd node */
     int count;		/**< auxiliary field for %DD dropping */
     int level;		/**< maximum distance from the inputs */
     int visited;	/**< flag for search */
-    struct BnetNode *next; /**< pointer to implement the linked list of nodes */
-} BnetNode;
+    struct _BnetNode *next; /**< pointer to implement the linked list of nodes */
+} _BnetNode;
 
 /**
  ** @brief Very simple boolean network data structure.
  */
-typedef struct BnetNetwork {
+typedef struct _BnetNetwork {
     char *name;		/**< network name: from the .model directive */
     int npis;		/**< number of primary inputs */
     int ninputs;	/**< number of inputs */
@@ -144,10 +144,10 @@ typedef struct BnetNetwork {
     char **outputs;	/**< primary output names: from the .outputs directive */
     int nlatches;	/**< number of latches */
     char ***latches;	/**< next state names: from the .latch directives */
-    BnetNode *nodes;	/**< linked list of the nodes */
+    _BnetNode *nodes;	/**< linked list of the nodes */
     st_table *hash;	/**< symbol table to access nodes by name */
     char *slope;	/**< wire_load_slope */
-} BnetNetwork;
+} _BnetNetwork;
 
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
@@ -170,9 +170,9 @@ typedef struct BnetNetwork {
 /* Function prototypes                                                       */
 /*---------------------------------------------------------------------------*/
 
-extern BnetNetwork * Bnet_ReadNetwork (FILE *fp, int pr);
-extern void Bnet_PrintNetwork (BnetNetwork *net);
-extern void Bnet_FreeNetwork (BnetNetwork *net);
+extern _BnetNetwork * Bnet_ReadNetwork (FILE *fp, int pr);
+extern void Bnet_PrintNetwork (_BnetNetwork *net);
+extern void Bnet_FreeNetwork (_BnetNetwork *net);
 
 /** \endcond */
 

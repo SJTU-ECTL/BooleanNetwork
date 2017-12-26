@@ -90,10 +90,10 @@ static char * readString (FILE *fp);
 static char ** readList (FILE *fp, int *n);
 static void printList (char **list, int n);
 static char ** bnetGenerateNewNames (st_table *hash, int n);
-static int bnetSetLevel (BnetNetwork *net);
-static int bnetLevelDFS (BnetNetwork *net, BnetNode *node);
-static BnetNode ** bnetOrderRoots (BnetNetwork *net, int *nroots);
-static int bnetLevelCompare (BnetNode **x, BnetNode **y);
+static int bnetSetLevel (_BnetNetwork *net);
+static int bnetLevelDFS (_BnetNetwork *net, _BnetNode *node);
+static _BnetNode ** bnetOrderRoots (_BnetNetwork *net, int *nroots);
+static int bnetLevelCompare (_BnetNode **x, _BnetNode **y);
 
 /** \endcond */
 
@@ -135,7 +135,7 @@ static int bnetLevelCompare (BnetNode **x, BnetNode **y);
   @see Bnet_PrintNetwork Bnet_FreeNetwork
 
 */
-BnetNetwork *
+_BnetNetwork *
 Bnet_ReadNetwork(
   FILE * fp /**< pointer to the blif file */,
   int  pr /**< verbosity level */)
@@ -143,15 +143,15 @@ Bnet_ReadNetwork(
     char *savestring;
     char **list;
     int i, j, n;
-    BnetNetwork *net;
-    BnetNode *newnode;
-    BnetNode *lastnode = nullptr;
+    _BnetNetwork *net;
+    _BnetNode *newnode;
+    _BnetNode *lastnode = nullptr;
     BnetTabline *newline;
     BnetTabline *lastline;
     char ***latches = nullptr;
     int maxlatches = 0;
     int exdc = 0;
-    BnetNode	*node;
+    _BnetNode	*node;
     int	count;
 
 /*---------------------------------------------------------------------------*/
@@ -161,9 +161,9 @@ Bnet_ReadNetwork(
 /*---------------------------------------------------------------------------*/
 
     /* Allocate network object and initialize symbol table. */
-    net = ALLOC(BnetNetwork,1);
+    net = ALLOC(_BnetNetwork,1);
     if (net == nullptr) goto failure;
-    memset((char *) net, 0, sizeof(BnetNetwork));
+    memset((char *) net, 0, sizeof(_BnetNetwork));
     net->hash = st_init_table((st_compare_t) strcmp, st_strhash);
     if (net->hash == nullptr) goto failure;
 
@@ -220,8 +220,8 @@ Bnet_ReadNetwork(
 		net->inputs = list;
 	    /* Create a node for each primary input. */
 	    for (i = 0; i < n; i++) {
-		newnode = ALLOC(BnetNode,1);
-		memset((char *) newnode, 0, sizeof(BnetNode));
+		newnode = ALLOC(_BnetNode,1);
+		memset((char *) newnode, 0, sizeof(_BnetNode));
 		if (newnode == nullptr) goto failure;
 		newnode->name = list[i];
 		newnode->inputs = nullptr;
@@ -283,9 +283,9 @@ Bnet_ReadNetwork(
 	    net->slope = savestring;
 	} else if (strcmp(savestring,".latch") == 0) {
 	    FREE(savestring);
-	    newnode = ALLOC(BnetNode,1);
+	    newnode = ALLOC(_BnetNode,1);
 	    if (newnode == nullptr) goto failure;
-	    memset((char *) newnode, 0, sizeof(BnetNode));
+	    memset((char *) newnode, 0, sizeof(_BnetNode));
 	    newnode->type = BNET_PRESENT_STATE_NODE;
 	    list = readList(fp,&n);
 	    if (list == nullptr) goto failure;
@@ -324,8 +324,8 @@ Bnet_ReadNetwork(
 	    if (savestring == nullptr) goto failure;
 	} else if (strcmp(savestring,".names") == 0) {
 	    FREE(savestring);
-	    newnode = ALLOC(BnetNode,1);
-	    memset((char *) newnode, 0, sizeof(BnetNode));
+	    newnode = ALLOC(_BnetNode,1);
+	    memset((char *) newnode, 0, sizeof(_BnetNode));
 	    if (newnode == nullptr) goto failure;
 	    list = readList(fp,&n);
 	    if (list == nullptr) goto failure;
@@ -487,7 +487,7 @@ Bnet_ReadNetwork(
     */
     newnode = net->nodes;
     while (newnode != nullptr) {
-	BnetNode *auxnd;
+	_BnetNode *auxnd;
 	for (i = 0; i < newnode->ninp; i++) {
 	    if (!st_lookup(net->hash,newnode->inputs[i],(void **)&auxnd)) {
 		(void) fprintf(stdout,"%s not driven\n", newnode->inputs[i]);
@@ -544,9 +544,9 @@ failure:
 */
 void
 Bnet_PrintNetwork(
-  BnetNetwork * net /**< boolean network */)
+  _BnetNetwork * net /**< boolean network */)
 {
-    BnetNode *nd;
+    _BnetNode *nd;
     BnetTabline *tl;
     int i;
 
@@ -597,9 +597,9 @@ Bnet_PrintNetwork(
 */
 void
 Bnet_FreeNetwork(
-  BnetNetwork * net)
+  _BnetNetwork * net)
 {
-    BnetNode *node, *nextnode;
+    _BnetNode *node, *nextnode;
     BnetTabline *line, *nextline;
     int i;
 
@@ -899,9 +899,9 @@ bnetBlifXnorTable(
 */
 static int
 bnetSetLevel(
-  BnetNetwork * net)
+  _BnetNetwork * net)
 {
-    BnetNode *node;
+    _BnetNode *node;
 
     /* Recursively visit nodes. This is pretty inefficient, because we
     ** visit all nodes in this loop, and most of them in the recursive
@@ -937,11 +937,11 @@ bnetSetLevel(
 */
 static int
 bnetLevelDFS(
-  BnetNetwork * net,
-  BnetNode * node)
+  _BnetNetwork * net,
+  _BnetNode * node)
 {
     int i;
-    BnetNode *auxnd;
+    _BnetNode *auxnd;
 
     if (node->visited == 1) {
 	return(1);
@@ -976,18 +976,18 @@ bnetLevelDFS(
   @sideeffect None
 
 */
-static BnetNode **
+static _BnetNode **
 bnetOrderRoots(
-  BnetNetwork * net,
+  _BnetNetwork * net,
   int * nroots)
 {
     int i, noutputs;
-    BnetNode *node;
-    BnetNode **nodes = nullptr;
+    _BnetNode *node;
+    _BnetNode **nodes = nullptr;
 
     /* Initialize data structures. */
     noutputs = net->noutputs;
-    nodes = ALLOC(BnetNode *, noutputs);
+    nodes = ALLOC(_BnetNode *, noutputs);
     if (nodes == nullptr) goto endgame;
 
     /* Find output names and levels. */
@@ -998,7 +998,7 @@ bnetOrderRoots(
 	nodes[i] = node;
     }
 
-    util_qsort(nodes, noutputs, sizeof(BnetNode *),
+    util_qsort(nodes, noutputs, sizeof(_BnetNode *),
                (DD_QSFP)bnetLevelCompare);
     *nroots = noutputs;
     return(nodes);
@@ -1024,8 +1024,8 @@ endgame:
 */
 static int
 bnetLevelCompare(
-  BnetNode ** x,
-  BnetNode ** y)
+  _BnetNode ** x,
+  _BnetNode ** y)
 {
     return((*y)->level - (*x)->level);
 
