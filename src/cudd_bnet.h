@@ -52,6 +52,7 @@
 
 #include "util.h"
 #include "st.h"
+#include <string>
 
 #ifdef __cplusplus
 extern "C" {
