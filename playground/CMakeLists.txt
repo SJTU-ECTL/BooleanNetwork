@@ -1,4 +1,4 @@
-set(playground_source_files playground.cpp)
+set(playground_source_files playground.cpp sta.cpp sta.h)
 set(CMAKE_CXX_STANDARD 17)
 
 include_directories(${bnet_include_directory})
