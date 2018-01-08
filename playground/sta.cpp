@@ -2,24 +2,45 @@
 
 static const int INF = 100000;
 
+struct T_Node {
+    BnetNodeID name;
+    int max_delay_to_sink;
+
+    T_Node(BnetNodeID name, int max_delay_to_sink) {
+        this->name = std::move(name);
+        this->max_delay_to_sink = max_delay_to_sink;
+    }
+};
+
+struct PartialPath {
+    std::vector<BnetNodeID> path;
+    int max_delay;
+
+    PartialPath(BnetNodeID node, int max_delay,
+                std::vector<BnetNodeID> path = std::vector<BnetNodeID>()) {
+        this->path = std::move(path);
+        this->path.emplace_back(node);
+        this->max_delay = max_delay;
+    }
+};
+
 std::vector<BnetNodeID> TopologicalSort(const BnetNetwork *net) {
     std::vector<BnetNodeID> sortedNodes;
     std::deque<BnetNodeID> nodesQueue;
     std::map<BnetNodeID, int> inDegrees;
 
     for (auto node:net->getNodesList()) {
-        inDegrees[node->getName()] = (int) node->getInputs().size();
-        if (node->getInputs().empty())
+        inDegrees[node->getName()] = (int) node->getFanIns().size();
+        if (node->getFanIns().empty())
             nodesQueue.emplace_back(node->getName());
     }
 
     while (!nodesQueue.empty()) {
         BnetNodeID id = nodesQueue.front();
+        sortedNodes.emplace_back(id);
         nodesQueue.pop_front();
-
         const BnetNode *node = net->getNodebyName(id);
-        sortedNodes.emplace_back(node->getName());
-        for (const auto &output:node->getOutputs()) {
+        for (const auto &output:node->getFanOuts()) {
             inDegrees[output] -= 1;
             if (inDegrees[output] == 0)
                 nodesQueue.push_back(output);
@@ -30,60 +51,97 @@ std::vector<BnetNodeID> TopologicalSort(const BnetNetwork *net) {
 }
 
 std::map<BnetNodeID, int> StaticTimingAnalysis(const BnetNetwork *net) {
-    std::vector<BnetNodeID> sortedNodes = TopologicalSort(net);
+    std::vector<BnetNodeID> sorted_nodes_id = TopologicalSort(net);
     std::map<BnetNodeID, int> arrival_time;
-    std::map<BnetNodeID, int> required_arrival_time;
+    std::map<BnetNodeID, int> required_time;
     std::map<BnetNodeID, int> slack;
     /* Initialization */
-    for (auto it = sortedNodes.begin(); it != sortedNodes.end(); ++it) {
+    for (auto it = sorted_nodes_id.begin(); it != sorted_nodes_id.end(); ++it) {
         arrival_time.insert(std::pair<BnetNodeID, int>(*it, -1 * INF));
-        required_arrival_time.insert(std::pair<BnetNodeID, int>(*it, INF));
+        required_time.insert(std::pair<BnetNodeID, int>(*it, INF));
         slack.insert(std::pair<BnetNodeID, int>(*it, 0));
     }
     int max_at = -1 * INF;
     /* Update at */
     arrival_time.at(SOURCE_NAME) = 0;
-    for (auto it = sortedNodes.begin(); it != sortedNodes.end(); ++it) {
-        for (const auto &input:net->getNodebyName(*it)->getInputs())
+    for (auto it = sorted_nodes_id.begin(); it != sorted_nodes_id.end(); ++it) {
+        for (const auto &input:net->getNodebyName(*it)->getFanIns())
             arrival_time.at(*it) = std::max(arrival_time.at(*it), arrival_time.at(input) + 1);
         if (arrival_time.at(*it) > max_at)
             max_at = arrival_time.at(*it);
     }
     /* Update rat */
-    required_arrival_time.at(SINK_NAME) = max_at;
-    for (auto rit = sortedNodes.rbegin(); rit != sortedNodes.rend(); ++rit) {
-        for (const auto &output:net->getNodebyName(*rit)->getOutputs())
-            required_arrival_time.at(*rit) = std::min(
-                    required_arrival_time.at(*rit), required_arrival_time.at(output) - 1);
+    required_time.at(SINK_NAME) = max_at;
+    for (auto rit = sorted_nodes_id.rbegin(); rit != sorted_nodes_id.rend(); ++rit) {
+        for (const auto &output:net->getNodebyName(*rit)->getFanOuts())
+            required_time.at(*rit) = std::min(
+                    required_time.at(*rit), required_time.at(output) - 1);
     }
     /* Update slack */
     for (auto node:net->getNodesList())
-        slack.at(node->getName()) = required_arrival_time.at(node->getName())
+        slack.at(node->getName()) = required_time.at(node->getName())
                                     - arrival_time.at(node->getName());
+
     return slack;
 }
 
-void WorstPathReporting(const BnetNetwork *net, std::map<BnetNodeID, int> &slack, int num) {
-    auto comp = [](PartialPath a, PartialPath b) { return a.slack > b.slack; };
-    std::priority_queue<PartialPath, std::vector<PartialPath>, decltype(comp)> min_heap(comp);
+void KMostCriticalPaths(const BnetNetwork *net, int k, bool show_slack) {
+    std::map<BnetNodeID, int> slack = StaticTimingAnalysis(net);
+    std::vector<BnetNodeID> sorted_nodes_id = TopologicalSort(net);
+    std::map<BnetNodeID, int> max_delay_to_sink;
+    /* Computation of Maximum Delays to Sink */
+    for (auto it = sorted_nodes_id.begin(); it != sorted_nodes_id.end(); ++it)
+        max_delay_to_sink.insert(std::pair<BnetNodeID, int>(*it, 0));
 
-    PartialPath source_node(SOURCE_NAME, slack.at(SOURCE_NAME));
-    min_heap.push(source_node);
+    for (auto rit = sorted_nodes_id.rbegin(); rit != sorted_nodes_id.rend(); ++rit) {
+        for (const auto &fan_out_id:net->getNodebyName(*rit)->getFanOuts())
+            max_delay_to_sink.at(*rit) = std::max(
+                    max_delay_to_sink.at(*rit),
+                    max_delay_to_sink.at(fan_out_id) + 1);
+    }
 
-    while (!min_heap.empty() && num > 0) {
-        PartialPath path_t = min_heap.top();
-        min_heap.pop();
-        if (path_t.path.back() == SINK_NAME) {
-            num--;
-            std::cout << "Delay: " << path_t.path.size() - 2 << "\t";
-            for (const auto &node : path_t.path)
-                std::cout << node << "^" << slack.at(node) << " ";
+    /* Sorting the Successors of Each Vertex */
+    auto t_comp = [](T_Node a, T_Node b) {
+        return a.max_delay_to_sink > b.max_delay_to_sink;
+    };
+    for (auto node: net->getNodesList()) {
+        std::vector<T_Node> t_fan_outs;
+        std::vector<BnetNodeID> fan_outs_id;
+
+        for (const auto &fan_out_id:node->getFanOuts())
+            t_fan_outs.emplace_back(T_Node(fan_out_id, max_delay_to_sink.at(fan_out_id)));
+
+        std::sort(t_fan_outs.begin(), t_fan_outs.end(), t_comp);
+
+        for (const auto &t_fan_out:t_fan_outs)
+            fan_outs_id.emplace_back(t_fan_out.name);
+        node->setFanOuts(fan_outs_id);
+    }
+
+    /* Path Enumeration */
+    auto comp = [](PartialPath a, PartialPath b) { return a.max_delay < b.max_delay; };
+    std::priority_queue<PartialPath, std::vector<PartialPath>, decltype(comp)> paths(comp);
+    paths.push(PartialPath(SOURCE_NAME, max_delay_to_sink.at(SOURCE_NAME)));
+
+    while (!paths.empty() && k > 0) {
+        PartialPath t_path = paths.top();
+        paths.pop();
+        if (t_path.path.back() == SINK_NAME) {
+            k--;
+            std::cout << "Delay: " << t_path.max_delay << "\t";
+            for (const auto &node_id : t_path.path) {
+                std::cout << node_id;
+                if (show_slack)
+                    std::cout << "=" << slack.at(node_id);
+                std::cout << "\t";
+            }
             std::cout << std::endl;
         } else {
-            BnetNode *node_t = net->getNodebyName(path_t.path.back());
-            for (const auto &successor : node_t->getOutputs()) {
-                PartialPath new_path(successor, slack.at(successor), path_t.path);
-                min_heap.push(new_path);
+            BnetNode *node_t = net->getNodebyName(t_path.path.back());
+            for (const auto &successor_id : node_t->getFanOuts()) {
+                paths.push(PartialPath(successor_id,
+                                       (int) t_path.path.size() + max_delay_to_sink.at(successor_id),
+                                       t_path.path));
             }
         }
     }
