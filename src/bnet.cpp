@@ -5,119 +5,121 @@ static FILE *open_file(const char *filename, const char *mode);
 static _BnetNode *_getNodebyName(const _BnetNetwork *net, BnetNodeID name);
 
 
-BnetNode::BnetNode(const _BnetNode *node, bool add_source_sink) {
-    name.assign(node->name);
-    ninp = node->ninp;
-    nout = node->nfo;
-    for (int i = 0; i < ninp; ++i)
-        inputs.emplace_back(node->inputs[i]);
-    for (int i = 0; i < nout; ++i)
-        outputs.emplace_back(node->outputs[i]);
-    if(add_source_sink) {
-        if(ninp==0) {
-            ninp++;
-            inputs.emplace_back(SOURCE_NAME);
+BnetNode::BnetNode(const _BnetNode *node, bool add_source_sink, int info) {
+    name_.assign(node->name);
+    n_inp_ = node->ninp;
+    n_out_ = node->nfo;
+    for (int i = 0; i < n_inp_; ++i)
+        fan_ins_.emplace_back(node->inputs[i]);
+    for (int i = 0; i < n_out_; ++i)
+        fan_outs_.emplace_back(node->outputs[i]);
+    if (add_source_sink) {
+        if (info == SOURCE_ID) {
+            n_inp_++;
+            fan_ins_.emplace_back(SOURCE_NAME);
         }
-        if(nout==0) {
-            nout++;
-            outputs.emplace_back(SINK_NAME);
+        if (info == SINK_ID) {
+            n_out_++;
+            fan_outs_.emplace_back(SINK_NAME);
         }
     }
 }
 
 BnetNode::BnetNode(BnetNodeID name, std::vector<BnetNodeID> inputs,
                    std::vector<BnetNodeID> outputs) {
-    this->ninp = (int) inputs.size();
-    this->nout = (int) outputs.size();
-    this->name = std::move(name);
-    this->inputs = std::move(inputs);
-    this->outputs = std::move(outputs);
+    n_inp_ = (int) inputs.size();
+    n_out_ = (int) outputs.size();
+    name_ = std::move(name);
+    fan_ins_ = std::move(inputs);
+    fan_outs_ = std::move(outputs);
 }
 
 BnetNode::~BnetNode() = default;
 
 BnetNodeID BnetNode::getName() const {
-    return name;
+    return name_;
 }
 
-const std::vector<BnetNodeID> &BnetNode::getInputs() const {
-    return inputs;
+const std::vector<BnetNodeID> &BnetNode::getFanIns() const {
+    return fan_ins_;
 }
 
-const std::vector<BnetNodeID> &BnetNode::getOutputs() const {
-    return outputs;
+const std::vector<BnetNodeID> &BnetNode::getFanOuts() const {
+    return fan_outs_;
+}
+
+void BnetNode::setFanIns(std::vector<BnetNodeID> fan_ins) {
+    fan_ins_ = std::move(fan_ins);
+}
+
+void BnetNode::setFanOuts(std::vector<BnetNodeID> fan_outs) {
+    fan_outs_ = std::move(fan_outs);
 }
 
 BnetNetwork::BnetNetwork(const std::string &file, bool add_source_sink) {
-    file_name = file;
+    file_name_ = file;
     FILE *fp;
     fp = open_file(file.c_str(), "r");
-    net = Bnet_ReadNetwork(fp, 0);
+    net_ = Bnet_ReadNetwork(fp, 0);
     fclose(fp);
 
-    for (int i = 0; i < net->npis; ++i)
-        inputs.emplace_back(net->inputs[i]);
+    for (int i = 0; i < net_->npis; ++i)
+        inputs_.emplace_back(net_->inputs[i]);
 
-    for (int i = 0; i < net->npos; ++i)
-        outputs.emplace_back(net->outputs[i]);
+    for (int i = 0; i < net_->npos; ++i)
+        outputs_.emplace_back(net_->outputs[i]);
 
-    for (const _BnetNode *t = net->nodes; t != nullptr; t = t->next) {
-        auto node = new BnetNode(t, add_source_sink);
-        nodes.emplace_back(node);
-        hash_table.insert(std::pair<BnetNodeID, BnetNode *>(node->getName(), node));
+    for (const _BnetNode *t = net_->nodes; t != nullptr; t = t->next) {
+        int info;
+        if (std::find(inputs_.begin(), inputs_.end(), std::string(t->name)) != inputs_.end())
+            info = 0;
+        else if (std::find(outputs_.begin(), outputs_.end(), std::string(t->name)) != outputs_.end())
+            info = 1;
+        else
+            info = -1;
+        auto node = new BnetNode(t, add_source_sink, info);
+        nodes_.emplace_back(node);
+        hash_table_.insert(std::pair<BnetNodeID, BnetNode *>(node->getName(), node));
     }
 
     if (add_source_sink) {
-        auto source = new BnetNode(SOURCE_NAME, std::vector<BnetNodeID>(), inputs);
-        nodes.emplace_back(source);
-        hash_table.insert(std::pair<BnetNodeID, BnetNode *>(source->getName(), source));
+        auto source = new BnetNode(SOURCE_NAME, std::vector<BnetNodeID>(), inputs_);
+        nodes_.emplace_back(source);
+        hash_table_.insert(std::pair<BnetNodeID, BnetNode *>(source->getName(), source));
 
-        auto sink = new BnetNode(SINK_NAME, outputs, std::vector<BnetNodeID>());
-        nodes.emplace_back(sink);
-        hash_table.insert(std::pair<BnetNodeID, BnetNode *>(sink->getName(), sink));
+        auto sink = new BnetNode(SINK_NAME, outputs_, std::vector<BnetNodeID>());
+        nodes_.emplace_back(sink);
+        hash_table_.insert(std::pair<BnetNodeID, BnetNode *>(sink->getName(), sink));
     }
 }
 
 BnetNetwork::~BnetNetwork() {
-    Bnet_FreeNetwork(net);
-    while (!nodes.empty()) {
-        delete nodes.back();
-        nodes.pop_back();
+    Bnet_FreeNetwork(net_);
+    while (!nodes_.empty()) {
+        delete nodes_.back();
+        nodes_.pop_back();
     }
 }
 
-/**
- * @brief print the BooleanNetwork(for testing purpose)
- */
-
 void BnetNetwork::printNetwork() const {
-    Bnet_PrintNetwork(net);
+    Bnet_PrintNetwork(net_);
 }
 
-/**
- * @brief get the linked list of nodes in BnetNetwork
- * @return the linked list of nodes in BnetNetwork
- */
 const std::vector<BnetNode *> &BnetNetwork::getNodesList() const {
-    return nodes;
+    return nodes_;
 }
 
 const std::vector<BnetNodeID> &BnetNetwork::getInputNames() const {
-    return inputs;
+    return inputs_;
 }
 
 const std::vector<BnetNodeID> &BnetNetwork::getOutputNames() const {
-    return outputs;
+    return outputs_;
 }
 
-/**
- * @brief get the BnetNode in BnetNetwork by its name
- * @return the BnetNode
- */
-
 BnetNode *BnetNetwork::getNodebyName(BnetNodeID name) const {
-    if (hash_table.find(name) != hash_table.end()) {
-        return hash_table.at(name);
+    if (hash_table_.find(name) != hash_table_.end()) {
+        return hash_table_.at(name);
     } else
         return nullptr;
 }
