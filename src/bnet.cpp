@@ -110,9 +110,11 @@ BnetNetwork::~BnetNetwork() {
     }
 }
 
-void BnetNetwork::printNetwork(std::string output_file, std::vector<BnetNodeID> deleted_nodes) const {
+void BnetNetwork::printNetwork(std::string output_file,
+                               std::vector<BnetNodeID> const_0_nodes,
+                               std::vector<BnetNodeID> const_1_nodes) const {
     freopen(output_file.c_str(), "w", stdout);
-    Bnet_PrintNetwork(net_, std::move(deleted_nodes));
+    Bnet_PrintNetwork(net_, std::move(const_0_nodes), std::move(const_1_nodes));
     fclose(stdout);
 }
 

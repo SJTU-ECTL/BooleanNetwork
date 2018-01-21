@@ -66,7 +66,8 @@ public:
     BnetNode *getNodebyName(BnetNodeID name) const;
 
     void printNetwork(std::string output_file,
-                      std::vector<BnetNodeID> deleted_nodes = std::vector<BnetNodeID>()) const;
+                      std::vector<BnetNodeID> const_0_nodes = std::vector<BnetNodeID>(),
+                      std::vector<BnetNodeID> const_1_nodes = std::vector<BnetNodeID>()) const;
 };
 
 #endif

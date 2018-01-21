@@ -49,6 +49,7 @@
 /* Implementation of BnetNode->outputs                                       */
 #include <map>
 #include <vector>
+#include <algorithm>
 /*---------------------------------------------------------------------------*/
 
 /*---------------------------------------------------------------------------*/
@@ -544,7 +545,9 @@ failure:
 */
 void
 Bnet_PrintNetwork(
-  _BnetNetwork * net /**< boolean network */, std::vector<std::string> deleted_nodes)
+  _BnetNetwork * net /**< boolean network */,
+  std::vector<std::string> const_0_nodes,
+  std::vector<std::string> const_1_nodes)
 {
     _BnetNode *nd;
     BnetTabline *tl;
@@ -563,8 +566,8 @@ Bnet_PrintNetwork(
     }
     nd = net->nodes;
     while (nd != nullptr) {
-        if ( std::find(deleted_nodes.begin(), deleted_nodes.end(),
-                       std::string(nd->name)) == deleted_nodes.end() ) {
+        if ( std::find(const_0_nodes.begin(), const_0_nodes.end(), std::string(nd->name)) == const_0_nodes.end() &&
+                std::find(const_1_nodes.begin(), const_1_nodes.end(), std::string(nd->name)) == const_1_nodes.end()) {
             if (nd->type != BNET_INPUT_NODE && nd->type != BNET_PRESENT_STATE_NODE) {
                 (void) fprintf(stdout,".names");
                 for (i = 0; i < nd->ninp; i++) {
@@ -585,6 +588,11 @@ Bnet_PrintNetwork(
         }
 	nd = nd->next;
     }
+
+    for (auto &node_name: const_0_nodes)
+        fprintf(stdout, ".names %s\n", node_name.c_str());
+    for (auto &node_name: const_1_nodes)
+        fprintf(stdout, ".names %s\n1\n", node_name.c_str());
     (void) fprintf(stdout,".end\n");
 
 } /* end of Bnet_PrintNetwork */
