@@ -9,9 +9,6 @@
 
 typedef std::string BnetNodeID;
 
-const int SOURCE_ID = 0;
-const int SINK_ID = 1;
-
 const char SOURCE_NAME[] = "SOURCE";
 const char SINK_NAME[] = "SINK";
 
@@ -22,6 +19,9 @@ private:
     int n_out_;
     std::vector<BnetNodeID> fan_ins_;
     std::vector<BnetNodeID> fan_outs_;
+    std::vector<BnetNodeID> truth_table_;
+    bool is_onset_;
+    bool is_input_;
 
 public:
     explicit BnetNode(const _BnetNode *node, bool add_source_sink = false, int info = -1);
@@ -65,7 +65,8 @@ public:
 
     BnetNode *getNodebyName(BnetNodeID name) const;
 
-    void printNetwork() const;
+    void printNetwork(std::string output_file,
+                      std::vector<BnetNodeID> deleted_nodes = std::vector<BnetNodeID>()) const;
 };
 
 #endif

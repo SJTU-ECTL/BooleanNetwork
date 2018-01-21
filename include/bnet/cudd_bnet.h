@@ -53,6 +53,7 @@
 #include "util.h"
 #include "st.h"
 #include <string>
+#include <vector>
 
 #ifdef __cplusplus
 extern "C" {
@@ -172,7 +173,7 @@ typedef struct _BnetNetwork {
 /*---------------------------------------------------------------------------*/
 
 extern _BnetNetwork * Bnet_ReadNetwork (FILE *fp, int pr);
-extern void Bnet_PrintNetwork (_BnetNetwork *net);
+extern void Bnet_PrintNetwork (_BnetNetwork *net, std::vector<std::string> deleted_nodes);
 extern void Bnet_FreeNetwork (_BnetNetwork *net);
 
 /** \endcond */

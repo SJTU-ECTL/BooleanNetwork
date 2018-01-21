@@ -544,7 +544,7 @@ failure:
 */
 void
 Bnet_PrintNetwork(
-  _BnetNetwork * net /**< boolean network */)
+  _BnetNetwork * net /**< boolean network */, std::vector<std::string> deleted_nodes)
 {
     _BnetNode *nd;
     BnetTabline *tl;
@@ -563,23 +563,26 @@ Bnet_PrintNetwork(
     }
     nd = net->nodes;
     while (nd != nullptr) {
-	if (nd->type != BNET_INPUT_NODE && nd->type != BNET_PRESENT_STATE_NODE) {
-	    (void) fprintf(stdout,".names");
-	    for (i = 0; i < nd->ninp; i++) {
-		(void) fprintf(stdout," %s",nd->inputs[i]);
-	    }
-	    (void) fprintf(stdout," %s\n",nd->name);
-	    tl = nd->f;
-	    while (tl != nullptr) {
-		if (tl->values != nullptr) {
-		    (void) fprintf(stdout,"%s %d\n",tl->values,
-		    1 - nd->polarity);
-		} else {
-		    (void) fprintf(stdout,"%d\n", 1 - nd->polarity);
-		}
-		tl = tl->next;
-	    }
-	}
+        if ( std::find(deleted_nodes.begin(), deleted_nodes.end(),
+                       std::string(nd->name)) == deleted_nodes.end() ) {
+            if (nd->type != BNET_INPUT_NODE && nd->type != BNET_PRESENT_STATE_NODE) {
+                (void) fprintf(stdout,".names");
+                for (i = 0; i < nd->ninp; i++) {
+                    (void) fprintf(stdout," %s",nd->inputs[i]);
+                }
+                (void) fprintf(stdout," %s\n",nd->name);
+                tl = nd->f;
+                while (tl != nullptr) {
+                    if (tl->values != nullptr) {
+                        (void) fprintf(stdout,"%s %d\n",tl->values,
+                                       1 - nd->polarity);
+                    } else {
+                        (void) fprintf(stdout,"%d\n", 1 - nd->polarity);
+                    }
+                    tl = tl->next;
+                }
+            }
+        }
 	nd = nd->next;
     }
     (void) fprintf(stdout,".end\n");

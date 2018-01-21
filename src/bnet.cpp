@@ -1,9 +1,11 @@
 #include "bnet.h"
 
+const int SOURCE_ID = 0;
+const int SINK_ID = 1;
+
 static FILE *open_file(const char *filename, const char *mode);
 
 static _BnetNode *_getNodebyName(const _BnetNetwork *net, BnetNodeID name);
-
 
 BnetNode::BnetNode(const _BnetNode *node, bool add_source_sink, int info) {
     name_.assign(node->name);
@@ -23,6 +25,13 @@ BnetNode::BnetNode(const _BnetNode *node, bool add_source_sink, int info) {
             fan_outs_.emplace_back(SINK_NAME);
         }
     }
+    BnetTabline *f = node->f;
+    while (f != nullptr) {
+        truth_table_.emplace_back(f->values);
+        f = f->next;
+    }
+    is_onset_ = node->polarity == 0;
+    is_input_ = node->type == BNET_INPUT_NODE;
 }
 
 BnetNode::BnetNode(BnetNodeID name, std::vector<BnetNodeID> inputs,
@@ -72,9 +81,9 @@ BnetNetwork::BnetNetwork(const std::string &file, bool add_source_sink) {
     for (const _BnetNode *t = net_->nodes; t != nullptr; t = t->next) {
         int info;
         if (std::find(inputs_.begin(), inputs_.end(), std::string(t->name)) != inputs_.end())
-            info = 0;
+            info = SOURCE_ID;
         else if (std::find(outputs_.begin(), outputs_.end(), std::string(t->name)) != outputs_.end())
-            info = 1;
+            info = SINK_ID;
         else
             info = -1;
         auto node = new BnetNode(t, add_source_sink, info);
@@ -101,8 +110,10 @@ BnetNetwork::~BnetNetwork() {
     }
 }
 
-void BnetNetwork::printNetwork() const {
-    Bnet_PrintNetwork(net_);
+void BnetNetwork::printNetwork(std::string output_file, std::vector<BnetNodeID> deleted_nodes) const {
+    freopen(output_file.c_str(), "w", stdout);
+    Bnet_PrintNetwork(net_, std::move(deleted_nodes));
+    fclose(stdout);
 }
 
 const std::vector<BnetNode *> &BnetNetwork::getNodesList() const {
