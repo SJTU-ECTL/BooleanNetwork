@@ -6,6 +6,8 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <memory>
+#include <cinttypes>
 
 typedef std::string BnetNodeID;
 

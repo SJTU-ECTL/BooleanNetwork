@@ -5,13 +5,21 @@ set(bnet_source_files bnet.cpp
         strsav.c
         ucbqsort.c
         config.h
-        util.h)
+        util.h
+        netlist.cpp
+        netlist.h
+        )
 set(bnet_header_files bnet.h cudd_bnet.h config.h st.h util.h)
 
 add_library(bnet_shared SHARED ${bnet_source_files})
 add_library(bnet_static STATIC ${bnet_source_files})
 set_target_properties(bnet_shared PROPERTIES OUTPUT_NAME "bnet")
 set_target_properties(bnet_static PROPERTIES OUTPUT_NAME "bnet")
+
+add_executable(IndirectArrayListTest
+        run.cpp
+        ectl_internals.h ectl_internals.hpp
+        netlist.cpp netlist.h)
 
 install(TARGETS bnet_shared bnet_static
         LIBRARY DESTINATION ${lib_directory}
