@@ -17,9 +17,9 @@ set_target_properties(bnet_shared PROPERTIES OUTPUT_NAME "bnet")
 set_target_properties(bnet_static PROPERTIES OUTPUT_NAME "bnet")
 
 add_executable(IndirectArrayListTest
-        run.cpp
+        indirect_array_list_example.cpp
         ectl_internals.h ectl_internals.hpp
-        netlist.cpp netlist.h)
+        netlist.h)
 
 install(TARGETS bnet_shared bnet_static
         LIBRARY DESTINATION ${lib_directory}

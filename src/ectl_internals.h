@@ -37,21 +37,22 @@ namespace ECTL::Internals::IndirectArrayList {
     template <
             typename HandleT,      // Type of the handle
             typename PoolT,        // Type of the pool
-            typename ValueT,       // Type of the actual object
+            typename ValueT        // Type of the actual object
     > struct Locator {
-        static ValueT      locate  (HandleT handle,       PoolT* pool);
+        static ValueT      locate  (HandleT handle,      PoolT* pool);
     };
 
     template <
             typename HandleT,      // Type of the handle
             typename PoolT,        // Type of the pool
-            typename ConstValueT,  // Type of the const object
+            typename ConstValueT   // Type of the const object
     > struct ConstLocator {
         static ConstValueT locate  (HandleT handle, const PoolT* pool);
     };
 
     template <
-            typename HandleT, typename PoolT, typename ConstValueT
+            typename HandleT, typename PoolT, typename ConstValueT,
+            typename ConstLocatorT=ConstLocator<HandleT, PoolT, ConstValueT>
     > class ConstGenerator {
         const HandleT  *curr;
         const HandleT  *end;
@@ -65,8 +66,9 @@ namespace ECTL::Internals::IndirectArrayList {
 
     template <
             typename HandleT, typename PoolT, typename ValueT,
-            typename ConstValueT=const std::remove_reference<ValueT>::type&,
-            typename ConstGeneratorT=ConstGenerator<HandleT, PoolT, ConstValueT>
+            typename ConstValueT=const typename std::remove_reference<ValueT>::type&,
+            typename ConstGeneratorT=ConstGenerator<HandleT, PoolT, ConstValueT>,
+            typename LocatorT=Locator<HandleT, PoolT, ValueT>
     > class Generator {
         const HandleT  *curr;
         const HandleT  *end;
@@ -78,7 +80,7 @@ namespace ECTL::Internals::IndirectArrayList {
         ValueT      next();
 
         /* Conversion to Const-ed version */
-        operator ConstGenerator() const;
+        operator ConstGeneratorT() const;
     };
 
     template <
@@ -95,7 +97,7 @@ namespace ECTL::Internals::IndirectArrayList {
 
     template <
             typename HandleT, typename PoolT, typename ValueT,
-            typename ConstValueT=const std::remove_reference<ValueT>::type &,
+            typename ConstValueT=const typename std::remove_reference<ValueT>::type &,
             typename GeneratorT=Generator<HandleT, PoolT, ValueT, ConstValueT>,
             typename ConstListT=ConstIndirectArrayList<HandleT, PoolT, ConstValueT>
     > class IndirectArrayList {
@@ -109,110 +111,6 @@ namespace ECTL::Internals::IndirectArrayList {
         // Conversion to Const-ed reference set
         operator ConstListT() const;
     };
-}
-
-namespace ECTL::Internals::IndirectArrayList {
-    template<
-            typename HandleT, typename PoolT, typename ValueT, typename ConstValueT
-    > ValueT Locator<HandleT, PoolT, ValueT>::locate(HandleT handle, PoolT *pool) {
-        throw std::runtime_error("Locator.locate() is not specialized.")
-    }
-
-    template<typename HandleT, typename PoolT, typename ValueT, typename ConstValueT>
-    ConstValueT ConstLocator<HandleT, PoolT, ConstValueT>::locate(HandleT handle, const PoolT *pool) {
-        throw std::runtime_error("ConstLocator.locate() is not specialized.")
-    }
-
-    template<
-            typename HandleT, typename PoolT, typename ConstValueT
-    > ConstGenerator<HandleT, PoolT, ConstValueT>::ConstGenerator()
-            : ConstGenerator(nullptr, nullptr, nullptr){ }
-
-    template<
-            typename HandleT, typename PoolT, typename ConstValueT
-    > ConstGenerator<HandleT, PoolT, ConstValueT>::ConstGenerator(
-            const HandleT *curr, const HandleT *end, const PoolT *pool
-    ) : curr(curr), end(end), pool(pool) { }
-
-    template<
-            typename HandleT, typename PoolT, typename ConstValueT
-    > bool ConstGenerator<HandleT, PoolT, ConstValueT>::hasEnded() const {
-        return curr == end;
-    }
-
-    template<
-            typename HandleT, typename PoolT, typename ConstValueT
-    > ConstValueT ConstGenerator<HandleT, PoolT, ConstValueT>::next() {
-        return ConstLocator<HandleT, PoolT, ConstValueT>::locate(curr, pool);
-    }
-
-    template<
-            typename HandleT, typename PoolT,
-            typename ValueT, typename ConstValueT, typename ConstGeneratorT
-    > Generator<HandleT, PoolT, ValueT, ConstValueT, ConstGeneratorT>::Generator()
-            : Generator(nullptr, nullptr, nullptr) { };
-
-    template<
-            typename HandleT, typename PoolT,
-            typename ValueT, typename ConstValueT, typename ConstGeneratorT
-    > Generator<HandleT, PoolT, ValueT, ConstValueT, ConstGeneratorT>::Generator(
-            const HandleT *curr, const HandleT *end, PoolT *pool
-    ) : curr(curr), end(end), pool(pool) { };
-
-    template<
-            typename HandleT, typename PoolT,
-            typename ValueT, typename ConstValueT, typename ConstGeneratorT
-    > bool Generator<HandleT, PoolT, ValueT, ConstValueT, ConstGeneratorT>::hasEnded() const {
-        return curr == end;
-    }
-
-    template<
-            typename HandleT, typename PoolT, typename ValueT, typename ConstValueT, typename ConstGeneratorT
-    > ValueT Generator<HandleT, PoolT, ValueT, ConstValueT, ConstGeneratorT>::next() {
-        return Locator<HandleT, PoolT, ValueT>::locate(curr, pool);
-    }
-
-    template<
-            typename HandleT, typename PoolT,
-            typename ValueT, typename ConstValueT, typename ConstGeneratorT
-    > Generator<HandleT, PoolT, ValueT, ConstValueT, ConstGeneratorT>::operator ConstGenerator() const {
-        return ConstGenerator(curr, end, pool);
-    }
-
-    template<
-            typename HandleT, typename PoolT,
-            typename ConstValueT, typename ConstGeneratorT
-    > ConstIndirectArrayList<HandleT, PoolT, ConstValueT, ConstGeneratorT>::ConstIndirectArrayList(
-            const HandleT *base, int32_t size, const PoolT *pool
-    ) : base(base), size(size), pool(pool) { }
-
-    template<
-            typename HandleT, typename PoolT,
-            typename ConstValueT, typename ConstGeneratorT
-    > ConstGeneratorT ConstIndirectArrayList<HandleT, PoolT, ConstValueT, ConstGeneratorT>::generator() const {
-        return ConstGenerator(base, base + size, pool);
-    }
-
-    template<
-            typename HandleT, typename PoolT,
-            typename ValueT, typename ConstValueT,
-            typename GeneratorT, typename ConstListT
-    > IndirectArrayList<HandleT, PoolT, ValueT, ConstValueT, GeneratorT, ConstListT>::IndirectArrayList(
-            const HandleT *base, int32_t size, PoolT *pool
-    ) : base(base), size(size), pool(pool)  { }
-
-    template<
-            typename HandleT, typename PoolT,
-            typename ValueT, typename ConstValueT,
-            typename GeneratorT, typename ConstListT
-    > GeneratorT IndirectArrayList<HandleT, PoolT, ValueT, ConstValueT, GeneratorT, ConstListT>::generator() const {
-        return Generator(base, base + size, pool);
-    }
-
-    template<typename HandleT, typename PoolT, typename ValueT, typename ConstValueT, typename GeneratorT, typename ConstListT>
-    IndirectArrayList<HandleT, PoolT, ValueT, ConstValueT, GeneratorT, ConstListT>::operator ConstListT() const {
-        return ConstListT(base, size, pool);
-    }
 }
 
 #include "ectl_internals.hpp"
