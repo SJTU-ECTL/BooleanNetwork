@@ -37,38 +37,14 @@ namespace ECTL::Internals::IndirectArrayList {
     template <
             typename HandleT,      // Type of the handle
             typename PoolT,        // Type of the pool
-            typename ValueT        // Type of the actual object
+            typename ValueT        // Type of the object
     > struct Locator {
-        static ValueT      locate  (HandleT handle,      PoolT* pool);
-    };
-
-    template <
-            typename HandleT,      // Type of the handle
-            typename PoolT,        // Type of the pool
-            typename ConstValueT   // Type of the const object
-    > struct ConstLocator {
-        static ConstValueT locate  (HandleT handle, const PoolT* pool);
+        static ValueT      locate  (HandleT handle,       PoolT* pool);
     };
 
     template <
             typename HandleT, typename PoolT, typename ConstValueT,
-            typename ConstLocatorT=ConstLocator<HandleT, PoolT, ConstValueT>
-    > class ConstGenerator {
-        const HandleT  *curr;
-        const HandleT  *end;
-        const PoolT    *pool;
-    public:
-        ConstGenerator();
-        ConstGenerator(const HandleT* curr, const HandleT* end, const PoolT* pool);
-        bool            hasEnded() const;
-        ConstValueT     next();
-    };
-
-    template <
-            typename HandleT, typename PoolT, typename ValueT,
-            typename ConstValueT=const typename std::remove_reference<ValueT>::type&,
-            typename ConstGeneratorT=ConstGenerator<HandleT, PoolT, ConstValueT>,
-            typename LocatorT=Locator<HandleT, PoolT, ValueT>
+            typename ConstLocatorT=Locator<HandleT, const PoolT, ConstValueT>
     > class Generator {
         const HandleT  *curr;
         const HandleT  *end;
@@ -76,16 +52,13 @@ namespace ECTL::Internals::IndirectArrayList {
     public:
         Generator();
         Generator(const HandleT* curr, const HandleT* end, PoolT* pool);
-        bool        hasEnded() const;
-        ValueT      next();
-
-        /* Conversion to Const-ed version */
-        operator ConstGeneratorT() const;
+        bool            hasEnded() const;
+        ConstValueT     next();
     };
 
     template <
             typename HandleT, typename PoolT, typename ConstValueT,
-            typename ConstGeneratorT=ConstGenerator<HandleT, PoolT, ConstValueT>
+            typename ConstGeneratorT=Generator<HandleT, const PoolT, ConstValueT>
     > class ConstIndirectArrayList {
         const HandleT*   base;   // Base address of the array
         int32_t          size;   // Maximum size of the array

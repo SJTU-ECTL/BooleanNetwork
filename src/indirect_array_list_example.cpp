@@ -53,14 +53,14 @@ public:
     //                   draw from a vector<string> pool
     //                   and returns const references to string
     class ConstGenerator :
-            IndirectArrayList::ConstGenerator<
-                    int, vector<string>, const string&, ConstLocator
+            IndirectArrayList::Generator<
+                    int, const vector<string>, const string&, ConstLocator
             > {
     public:
-        using base_t = IndirectArrayList::ConstGenerator<
-                int, vector<string>, const string&, ConstLocator
+        using base_t = IndirectArrayList::Generator<
+                int, const vector<string>, const string&, ConstLocator
         >;
-        using base_t::ConstGenerator; // Expose both CTors
+        using base_t::Generator; // Expose both CTors
         using base_t::hasEnded;       // Expose hasEnded();
         using base_t::next;           // Expose next()
     };

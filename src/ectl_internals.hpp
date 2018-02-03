@@ -10,77 +10,31 @@ namespace ECTL::Internals::IndirectArrayList {
     }
 
     template<
-            typename HandleT, typename PoolT, typename ConstValueT
-    > ConstValueT ConstLocator<HandleT, PoolT, ConstValueT>::locate(HandleT handle, const PoolT *pool) {
-        throw std::runtime_error("ConstLocator.locate() is not specialized.");
-    }
+            typename HandleT, typename PoolT,
+            typename ConstValueT, typename ConstLocatorT
+    > Generator<HandleT, PoolT, ConstValueT, ConstLocatorT>::Generator()
+            : Generator(nullptr, nullptr, nullptr){ }
 
     template<
             typename HandleT, typename PoolT,
             typename ConstValueT, typename ConstLocatorT
-    > ConstGenerator<HandleT, PoolT, ConstValueT, ConstLocatorT>::ConstGenerator()
-            : ConstGenerator(nullptr, nullptr, nullptr){ }
-
-    template<
-            typename HandleT, typename PoolT,
-            typename ConstValueT, typename ConstLocatorT
-    > ConstGenerator<HandleT, PoolT, ConstValueT, ConstLocatorT>::ConstGenerator(
-            const HandleT *curr, const HandleT *end, const PoolT *pool
+    > Generator<HandleT, PoolT, ConstValueT, ConstLocatorT>::Generator(
+            const HandleT *curr, const HandleT *end, PoolT *pool
     ) : curr(curr), end(end), pool(pool) { }
 
     template<
             typename HandleT, typename PoolT,
             typename ConstValueT, typename ConstLocatorT
-    > bool ConstGenerator<HandleT, PoolT, ConstValueT, ConstLocatorT>::hasEnded() const {
+    > bool Generator<HandleT, PoolT, ConstValueT, ConstLocatorT>::hasEnded() const {
         return curr == end;
     }
 
     template<
             typename HandleT, typename PoolT,
             typename ConstValueT, typename ConstLocatorT
-    > ConstValueT ConstGenerator<HandleT, PoolT, ConstValueT, ConstLocatorT>::next() {
+    > ConstValueT Generator<HandleT, PoolT, ConstValueT, ConstLocatorT>::next() {
         auto last = curr++;
         return ConstLocatorT::locate(*last, pool);
-    }
-
-    template<
-            typename HandleT, typename PoolT,
-            typename ValueT, typename ConstValueT,
-            typename ConstGeneratorT, typename LocatorT
-    > Generator<HandleT, PoolT, ValueT, ConstValueT, ConstGeneratorT, LocatorT>::Generator()
-            : Generator(nullptr, nullptr, nullptr) { };
-
-    template<
-            typename HandleT, typename PoolT,
-            typename ValueT, typename ConstValueT,
-            typename ConstGeneratorT, typename LocatorT
-    > Generator<HandleT, PoolT, ValueT, ConstValueT, ConstGeneratorT, LocatorT>::Generator(
-            const HandleT *curr, const HandleT *end, PoolT *pool
-    ) : curr(curr), end(end), pool(pool) { };
-
-    template<
-            typename HandleT, typename PoolT,
-            typename ValueT, typename ConstValueT,
-            typename ConstGeneratorT, typename LocatorT
-    > bool Generator<HandleT, PoolT, ValueT, ConstValueT, ConstGeneratorT, LocatorT>::hasEnded() const {
-        return curr == end;
-    }
-
-    template<
-            typename HandleT, typename PoolT,
-            typename ValueT, typename ConstValueT,
-            typename ConstGeneratorT, typename LocatorT
-    > ValueT Generator<HandleT, PoolT, ValueT, ConstValueT, ConstGeneratorT, LocatorT>::next() {
-        auto last = curr++;
-        return LocatorT::locate(*curr, pool);
-    }
-
-    template<
-            typename HandleT, typename PoolT,
-            typename ValueT, typename ConstValueT,
-            typename ConstGeneratorT, typename LocatorT
-    > Generator<HandleT, PoolT, ValueT, ConstValueT, ConstGeneratorT, LocatorT>::operator ConstGeneratorT() const {
-        return ConstGeneratorT(curr, end, pool);
     }
 
     template<
