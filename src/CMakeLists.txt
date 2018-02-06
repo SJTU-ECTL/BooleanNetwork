@@ -1,32 +1,49 @@
-set(bnet_source_files bnet.cpp
-        cudd_bnet.cpp
-        safe_mem.c
-        st.c
-        strsav.c
-        ucbqsort.c
-        config.h
-        util.h
-        netlist.cpp
-        netlist.h
+set(LIB_NAME        ${EXPORT_LIB_NAME})
+set(HEADER_DIR      "include")
+set(SOURCE_DIR      ".")
+
+message(STATUS "Loading library for target '${LIB_NAME}':")
+
+set(SOURCE
+        #${SOURCE_DIR}/netlist.cpp
+        ${SOURCE_DIR}/bnet.cpp
         )
-set(bnet_header_files bnet.h cudd_bnet.h config.h st.h util.h)
 
-add_library(bnet_shared SHARED ${bnet_source_files})
-add_library(bnet_static STATIC ${bnet_source_files})
-set_target_properties(bnet_shared PROPERTIES OUTPUT_NAME "bnet")
-set_target_properties(bnet_static PROPERTIES OUTPUT_NAME "bnet")
+set(HEADER
+        ${HEADER_DIR}/${LIB_NAME}/ectlrf.h
+        ${HEADER_DIR}/${LIB_NAME}/blif_netlist.h
+        ${HEADER_DIR}/${LIB_NAME}/internals/common.h
+        ${HEADER_DIR}/${LIB_NAME}/internals/blif_netlist.h
+        ${HEADER_DIR}/${LIB_NAME}/internals/indirect_array_list.h
+        ${HEADER_DIR}/${LIB_NAME}/internals/indirect_array_list.hpp
+        )
 
-add_executable(IndirectArrayListTest
-        indirect_array_list_example.cpp
-        ectl_internals.h ectl_internals.hpp
-        netlist.h)
+set(ALL_FILES ${HEADER} ${SOURCE})
 
-install(TARGETS bnet_shared bnet_static
-        LIBRARY DESTINATION ${lib_directory}
-        ARCHIVE DESTINATION ${lib_directory})
-install(FILES ${bnet_header_files}
-        DESTINATION ${bnet_include_directory})
+add_library(${LIB_NAME} STATIC
+        ${ALL_FILES}
+        $<TARGET_OBJECTS:cudd_blif_obj>)
 
-add_custom_target(install_bnet
-        "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" --target install
-        COMMENT "Installing ${PROJECT_NAME}")
+target_include_directories(ectlrf
+        PUBLIC ${HEADER_DIR})
+
+# Use object library to hide the Cudd* files
+# No longer need to link these files for projects depending
+# on this library
+
+target_link_libraries(ectlrf PRIVATE cudd_blif)
+
+get_target_property(interface_include
+        ${LIB_NAME} INTERFACE_INCLUDE_DIRECTORIES)
+get_target_property(private_include
+        ${LIB_NAME} INCLUDE_DIRECTORIES )
+
+get_target_property(link_libs
+        ${LIB_NAME} LINK_LIBRARIES)
+message(STATUS "\tLinking libraries: ${link_libs}")
+foreach(dir ${private_include})
+    message(STATUS "\t[Build Include    ] '${dir}'")
+endforeach()
+foreach(dir ${interface_include})
+    message(STATUS "\t[Interface Include] '${dir}'")
+endforeach()

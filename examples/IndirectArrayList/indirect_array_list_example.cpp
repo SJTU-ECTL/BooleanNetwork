@@ -5,7 +5,7 @@
 #include <string>
 #include <iostream>
 #include <cassert>
-#include "ectl_internals.h"
+#include <ectlrf/internals/indirect_array_list.h>
 
 using namespace std;
 using namespace ECTL::Internals;

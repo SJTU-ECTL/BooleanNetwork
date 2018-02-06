@@ -65,8 +65,8 @@
 
 */
 
-#include "util.h"
-#include "st.h"
+#include <cudd_blif/util.h>
+#include <cudd_blif/st.h>
 
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */

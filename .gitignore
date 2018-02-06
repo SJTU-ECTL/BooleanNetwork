@@ -1,3 +1,6 @@
 *.a
 *.so
 *.dylib
+*.DS_Store
+cmake-build-*/
+.idea/

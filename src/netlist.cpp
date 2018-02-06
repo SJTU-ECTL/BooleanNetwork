@@ -1,7 +1,8 @@
 //
 // Created by Patrick Yao on 29/01/2018.
 //
-#include "cudd_bnet.h"
+#include <cudd_blif/cudd_bnet.h>
+#include <ectlrf/ectlrf.h>
 #include "netlist.h"
 #include <exception>
 

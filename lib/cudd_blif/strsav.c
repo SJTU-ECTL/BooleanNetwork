@@ -62,7 +62,7 @@
 
 */
 
-#include "util.h"
+#include <cudd_blif/util.h>
 
 /**
  *  @brief Returns a copy of a string.

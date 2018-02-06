@@ -10,7 +10,7 @@
 #include <memory>
 #include <functional>
 
-#include "ectl_internals.h"
+#include <ectlrf/ectlrf.h>
 
 namespace ECTL {
 

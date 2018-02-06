@@ -1,7 +1,7 @@
 #ifndef BOOLEANNETWORK_BNET_H
 #define BOOLEANNETWORK_BNET_H
 
-#include "cudd_bnet.h"
+#include <cudd_blif/cudd_bnet.h>
 #include <string>
 #include <vector>
 #include <map>

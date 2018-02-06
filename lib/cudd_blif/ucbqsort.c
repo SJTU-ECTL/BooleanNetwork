@@ -73,7 +73,7 @@
 
  */
 
-#include "util.h"
+#include <cudd_blif/util.h>
 
 #ifndef USE_SYSTEM_QSORT
 /**

@@ -1,30 +1,10 @@
 //
-// Created by Patrick Yao on 30/01/2018.
+// Created by Patrick Yao on 06/02/2018.
 //
 
-#ifndef BOOLEANNETWORK_ECTL_INTERNALS_H
-#define BOOLEANNETWORK_ECTL_INTERNALS_H
+#ifndef BOOLEANNETWORK_INDIRECT_ARRAY_LIST_H
+#define BOOLEANNETWORK_INDIRECT_ARRAY_LIST_H
 
-#include <cinttypes>
-#include <functional>
-#include <exception>
-
-namespace ECTL::Internals {
-    // Introducint the PImpl Patter
-    // http://oliora.github.io/2015/12/29/pimpl-and-rule-of-zero.html
-    // Nessecity of explitly declaring the dtor:
-    // https://stackoverflow.com/questions/9020372/how-do-i-use-unique-ptr-for-pimpl
-    struct _network;
-
-    typedef union {
-        int64_t iVal;
-        double  dVal;
-        void*   ptr;
-        struct { void* p1;   void* p2; } ptrPair;
-        struct { int32_t x;  int32_t y; } intPair;
-        struct { void* base; int32_t id; int32_t max; } arrayRef;
-    } smallBuffer;
-}
 
 namespace ECTL::Internals::IndirectArrayList {
 
@@ -48,7 +28,7 @@ namespace ECTL::Internals::IndirectArrayList {
     > class Generator {
         const HandleT  *curr;
         const HandleT  *end;
-              PoolT    *pool;
+        PoolT    *pool;
     public:
         Generator();
         Generator(const HandleT* curr, const HandleT* end, PoolT* pool);
@@ -86,6 +66,6 @@ namespace ECTL::Internals::IndirectArrayList {
     };
 }
 
-#include "ectl_internals.hpp"
+#include "indirect_array_list.hpp"
 
-#endif //BOOLEANNETWORK_ECTL_INTERNALS_H
+#endif //BOOLEANNETWORK_INDIRECT_ARRAY_LIST_H

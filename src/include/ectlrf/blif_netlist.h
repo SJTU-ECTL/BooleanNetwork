@@ -1,0 +1,9 @@
+//
+// Created by Patrick Yao on 06/02/2018.
+//
+
+#ifndef BOOLEANNETWORK_BLIF_NETLIST_H
+#define BOOLEANNETWORK_BLIF_NETLIST_H
+
+
+#endif //BOOLEANNETWORK_BLIF_NETLIST_H

@@ -43,7 +43,7 @@
 
 */
 
-#include "cudd_bnet.h"
+#include <cudd_blif/cudd_bnet.h>
 
 /*---------------------------------------------------------------------------*/
 /* Implementation of BnetNode->outputs                                       */
