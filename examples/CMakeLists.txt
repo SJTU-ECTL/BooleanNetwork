@@ -1,1 +1,3 @@
 add_subdirectory(IndirectArrayList)
+
+add_subdirectory(TopsortBlifNetlist)

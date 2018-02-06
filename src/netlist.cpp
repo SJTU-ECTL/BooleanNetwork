@@ -10,8 +10,7 @@ using namespace ECTL;
 using namespace ECTL::Internals;
 using namespace std;
 
-static FILE *open_file(const char *filename,
-                       const char *mode);
+
 static _BnetNode *_getNodebyName(const _BnetNetwork *net,
                                  const char* name);
 
@@ -84,16 +83,7 @@ int32_t Netlist::numOfOutputs() const {
     return pimpl->net->ninputs;
 }
 
-static FILE *open_file(const char *filename, const char *mode) {
-    FILE *fp;
-    if (strcmp(filename, "-") == 0) {
-        return mode[0] == 'r' ? stdin : stdout;
-    } else if ((fp = fopen(filename, mode)) == NULL) {
-        perror(filename);
-        exit(1);
-    }
-    return (fp);
-}
+
 
 Netlist::ConstGenerator Netlist::ConstNodeSet::generator() const {
     return Netlist::ConstGenerator();

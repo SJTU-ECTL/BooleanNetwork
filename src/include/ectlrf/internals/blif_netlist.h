@@ -2,8 +2,8 @@
 // Created by Patrick Yao on 06/02/2018.
 //
 
-#ifndef BOOLEANNETWORK_BLIF_NETLIST_H
-#define BOOLEANNETWORK_BLIF_NETLIST_H
+#ifndef INTERNAL_BLIF_NETLIST_H
+#define INTERNAL_BLIF_NETLIST_H
 
 #include "common.h"
 

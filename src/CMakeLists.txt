@@ -7,6 +7,7 @@ message(STATUS "Loading library for target '${LIB_NAME}':")
 set(SOURCE
         #${SOURCE_DIR}/netlist.cpp
         ${SOURCE_DIR}/bnet.cpp
+        ${SOURCE_DIR}/blif_netlist.cpp
         )
 
 set(HEADER
