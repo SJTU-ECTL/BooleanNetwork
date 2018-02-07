@@ -1,0 +1,3 @@
+[submodule "resources/eda"]
+	path = resources/eda
+	url = https://github.com/SJTU-ECTL/EDA-Resource.git
