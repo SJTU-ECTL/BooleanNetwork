@@ -8,6 +8,8 @@ add_executable(${EXAMPLE_NAME}
 
 target_link_libraries(${EXAMPLE_NAME}
         PRIVATE ectlrf
+        PRIVATE finder
+        PRIVATE stopwatch
         )
 
 get_target_property(interface_include

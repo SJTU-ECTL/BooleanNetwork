@@ -39,8 +39,8 @@ get_target_property(private_include
         cudd_blif INCLUDE_DIRECTORIES )
 
 foreach(dir ${private_include})
-    message(STATUS "\t[Build Include    ] '${private_include}'")
+    message(STATUS "\t[Build Include    ] '${dir}'")
 endforeach()
 foreach(dir ${interface_include})
-    message(STATUS "\t[Interface Include] '${interface_include}'")
+    message(STATUS "\t[Interface Include] '${dir}'")
 endforeach()

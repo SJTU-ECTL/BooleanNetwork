@@ -28,8 +28,8 @@ get_target_property(private_include
         ${UTIL_NAME} INCLUDE_DIRECTORIES )
 
 foreach(dir ${private_include})
-    message(STATUS "\t[Build Include    ] '${private_include}'")
+    message(STATUS "\t[Build Definition ] '${dir}'")
 endforeach()
 foreach(dir ${interface_include})
-    message(STATUS "\t[Interface Include] '${interface_include}'")
+    message(STATUS "\t[Interface Include] '${dir}'")
 endforeach()
