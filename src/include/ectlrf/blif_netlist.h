@@ -83,6 +83,8 @@ namespace ECTL {
         using base_t::Generator;
         using base_t::hasEnded;
         using base_t::next;
+        using base_t::curr;
+        using base_t::skip;
     };
 
     class BlifNetlist::ConstNodeRefArraySet

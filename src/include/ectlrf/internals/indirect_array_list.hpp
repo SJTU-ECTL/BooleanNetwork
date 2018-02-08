@@ -20,21 +20,31 @@ namespace ECTL::Internals::IndirectArrayList {
             typename ConstValueT, typename ConstLocatorT
     > Generator<HandleT, PoolT, ConstValueT, ConstLocatorT>::Generator(
             const HandleT *curr, const HandleT *end, PoolT *pool
-    ) : curr(curr), end(end), pool(pool) { }
+    ) : current(curr), end(end), pool(pool) { }
 
     template<
             typename HandleT, typename PoolT,
             typename ConstValueT, typename ConstLocatorT
     > bool Generator<HandleT, PoolT, ConstValueT, ConstLocatorT>::hasEnded() const {
-        return curr == end;
+        return current == end;
     }
 
     template<
             typename HandleT, typename PoolT,
             typename ConstValueT, typename ConstLocatorT
     > ConstValueT Generator<HandleT, PoolT, ConstValueT, ConstLocatorT>::next() {
-        auto last = curr++;
+        auto last = current++;
         return ConstLocatorT::locate(*last, pool);
+    }
+
+    template<typename HandleT, typename PoolT, typename ValueT, typename LocatorT>
+    void Generator<HandleT, PoolT, ValueT, LocatorT>::skip() {
+        current++;
+    }
+
+    template<typename HandleT, typename PoolT, typename ValueT, typename LocatorT>
+    ValueT Generator<HandleT, PoolT, ValueT, LocatorT>::curr() {
+        return LocatorT::locate(*current, pool);
     }
 
     template<

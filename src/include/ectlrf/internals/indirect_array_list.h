@@ -23,17 +23,19 @@ namespace ECTL::Internals::IndirectArrayList {
     };
 
     template <
-            typename HandleT, typename PoolT, typename ConstValueT,
-            typename ConstLocatorT=Locator<HandleT, const PoolT, ConstValueT>
+            typename HandleT, typename PoolT, typename ValueT,
+            typename LocatorT=Locator<HandleT, const PoolT, ValueT>
     > class Generator {
-        const HandleT  *curr;
+        const HandleT  *current;
         const HandleT  *end;
-        PoolT    *pool;
+        PoolT          *pool;
     public:
         Generator();
         Generator(const HandleT* curr, const HandleT* end, PoolT* pool);
         bool            hasEnded() const;
-        ConstValueT     next();
+        ValueT          next();
+        void            skip();
+        ValueT          curr();
     };
 
     template <
