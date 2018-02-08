@@ -2,8 +2,8 @@
 // Created by tripack on 17-3-26.
 //
 
-#ifndef VE490_RESOURCE_H
-#define VE490_RESOURCE_H
+#ifndef VE490_UTIL_FINDER_H
+#define VE490_UTIL_FINDER_H
 
 #include <string>
 
