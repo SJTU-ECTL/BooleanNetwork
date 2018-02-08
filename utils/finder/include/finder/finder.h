@@ -7,52 +7,46 @@
 
 #include <string>
 
-class File {
-    std::string base;
-    std::string ext;
-public:
-    File(const std::string& base, const std::string& ext);
-    File operator[] (const std::string &name) const;
-    File operator[] (int i) const;
-    operator std::string() const;
-    std::string toString() const;
-};
+namespace ECTL::Utils {
 
-class FileClass {
-    std::string ext;
-public:
-    FileClass(const std::string& ext);
-    File operator()(const std::string& name) const;
-    std::string toString() const;
-};
+    class File {
+        std::string base;
+        std::string ext;
 
-class Path {
-    std::string path;
-public:
-    Path(const std::string& p);
-    std::string toString() const;
-    std::string operator/(const std::string& f) const;
-    Path sub(const std::string& f) const;
-};
+    public:
+        File(const std::string &base, const std::string &ext);
+        File operator[](const std::string &name) const;
+        File operator[](int i) const;
 
-static const Path ProjectBase(PROJECT_SOURCE_DIR);
-static const Path DataPath = ProjectBase.sub("data");
+        operator std::string() const;
+        std::string toString() const;
+    };
 
-static const Path CircuitPath = DataPath.sub("circuit");
+    class FileClass {
+        std::string ext;
+    public:
+        FileClass(const std::string &ext);
+        File operator()(const std::string &name) const;
 
-static const Path BenchmarkPath     = CircuitPath.sub("other_original");
-static const Path BenchmarkAigPath  = CircuitPath.sub("other_fraig");
+        std::string toString() const;
+    };
 
-static const Path McncPath          = CircuitPath.sub("mcnc_original");
-static const Path McncAigPath       = CircuitPath.sub("mcnc_aig");
-static const Path McncFraigPath     = CircuitPath.sub("mcnc_fraig");
+    class Path {
+        std::string path;
+    public:
+        Path(const std::string &p);
+        std::string toString() const;
 
-static const Path PrecompDbPath     = DataPath.sub("precomp");
+        std::string operator/(const std::string &f) const;
 
-static const Path TempPath          = ProjectBase.sub("bin/temp");
+        Path sub(const std::string &f) const;
+    };
 
-static const FileClass fBlif("blif");
-static const FileClass fCpp("cpp");
-static const FileClass fSo("so");
+    static const Path ProjectBase(PROJECT_SOURCE_DIR);
+
+    static const FileClass fBlif("blif");
+    static const FileClass fCpp("cpp");
+    static const FileClass fSo("so");
+}
 
 #endif //VE490_RESOURCE_H

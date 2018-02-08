@@ -4,6 +4,8 @@
 
 #include <finder/finder.h>
 
+using namespace ECTL::Utils;
+
 File::File(const std::string &base,
            const std::string &ext)
         : base(base), ext(ext) {}
