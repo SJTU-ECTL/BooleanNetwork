@@ -49,8 +49,8 @@ BlifNetlist::~BlifNetlist(){
 }
 
 BlifNetlist::ConstNodeRef
-BlifNetlist::Locator::locate(smallBuffer buffer, const ImplType* impl) {
-    auto nodeName = static_cast<const char*>(buffer.ptr);
+BlifNetlist::Locator::locate(void* buffer, const ImplType* impl) {
+    auto nodeName = static_cast<const char*>(buffer);
     auto net = impl->net;
     auto nodePtr = _getNodebyName(net, nodeName);
     return ConstNodeRef(nodePtr, impl);

@@ -24,13 +24,13 @@ namespace ECTL {
     private:
         typedef Internals::BlifNetlist::_network ImplType;
         typedef Internals::smallBuffer           smallBuffer;
-        struct Locator;         // Look up function, for book keeping
+        struct  Locator;         // Look up function, for book keeping
 
         /* PUBLIC TYPES */
     public:
-        class ConstNodeRef;     // Const-referential type
-        class ConstIOGenerator;      // Generator<Const NodeRef>
-        class ConstNodeRefArraySet;       // Const-referential Container
+        class ConstNodeRef;             // Const-referential type
+        class ConstIOGenerator;         // Generator<Const NodeRef>
+        class ConstNodeRefArraySet;     // Const-referential Container
 
 
         /* PUBLIC FUNCTIONS */
@@ -43,8 +43,8 @@ namespace ECTL {
         BlifNetlist(const BlifNetlist& other);                  // Copy Ctor
         BlifNetlist(BlifNetlist&& other) noexcept;              // Move Ctor
         BlifNetlist& operator=(const BlifNetlist& other);       // Copy assignment
-        BlifNetlist& operator=(BlifNetlist&& other) noexcept;            // Move assignment
-        ~BlifNetlist();                                     // Dtor
+        BlifNetlist& operator=(BlifNetlist&& other) noexcept;   // Move assignment
+        ~BlifNetlist();                                         // Dtor
 
         ConstNodeRefArraySet Inputs()             const;
         ConstNodeRefArraySet Outputs()            const;
@@ -58,7 +58,7 @@ namespace ECTL {
         using ConstNodeRef = BlifNetlist::ConstNodeRef;
         using smallBuffer  = Internals::smallBuffer;
         using network      = ImplType;
-        ConstNodeRef locate(smallBuffer, const network*);
+        static ConstNodeRef locate(void* , const network*);
     };
 
     class BlifNetlist::ConstNodeRef {

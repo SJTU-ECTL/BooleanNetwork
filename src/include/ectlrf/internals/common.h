@@ -11,7 +11,6 @@
 
 namespace ECTL::Internals {
 
-
     typedef union {
         int64_t iVal;
         double  dVal;
