@@ -42,12 +42,13 @@ namespace ECTL::Internals::IndirectArrayList {
             typename HandleT, typename PoolT, typename ConstValueT,
             typename ConstGeneratorT=Generator<HandleT, const PoolT, ConstValueT>
     > class ConstIndirectArrayList {
-        const HandleT*   base;   // Base address of the array
-        int32_t          size;   // Maximum size of the array
-        const PoolT*     pool;   // Location of the pool
+        const HandleT*   base;      // Base address of the array
+        int32_t          maxSize;   // Maximum size of the array
+        const PoolT*     pool;      // Location of the pool
     public:
         ConstIndirectArrayList(const HandleT* base, int32_t size, const PoolT* pool);
         ConstGeneratorT generator() const;
+        int32_t         size()      const;
     };
 
     template <
@@ -56,12 +57,14 @@ namespace ECTL::Internals::IndirectArrayList {
             typename GeneratorT=Generator<HandleT, PoolT, ValueT, ConstValueT>,
             typename ConstListT=ConstIndirectArrayList<HandleT, PoolT, ConstValueT>
     > class IndirectArrayList {
-        const HandleT*   base;   // Base address of the array
-        int32_t          size;   // Maximum size of the array
-        PoolT*           pool;  // The pool
+        const HandleT*   base;      // Base address of the array
+        int32_t          maxSize;   // Maximum size of the array
+        PoolT*           pool;      // The pool
     public:
         IndirectArrayList(const HandleT* base, int32_t size, PoolT* pool);
         GeneratorT generator() const;
+        int32_t    size()      const;
+
 
         // Conversion to Const-ed reference set
         operator ConstListT() const;

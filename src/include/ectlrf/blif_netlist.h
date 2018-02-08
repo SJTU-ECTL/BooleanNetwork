@@ -97,6 +97,7 @@ namespace ECTL {
         >;
         using base_t::ConstIndirectArrayList;
         using base_t::generator;
+        using base_t::size;
     };
 
 }

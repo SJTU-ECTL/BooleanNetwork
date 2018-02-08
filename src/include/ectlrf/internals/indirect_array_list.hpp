@@ -52,13 +52,18 @@ namespace ECTL::Internals::IndirectArrayList {
             typename ConstValueT, typename ConstGeneratorT
     > ConstIndirectArrayList<HandleT, PoolT, ConstValueT, ConstGeneratorT>::ConstIndirectArrayList(
             const HandleT *base, int32_t size, const PoolT *pool
-    ) : base(base), size(size), pool(pool) { }
+    ) : base(base), maxSize(size), pool(pool) { }
 
     template<
             typename HandleT, typename PoolT,
             typename ConstValueT, typename ConstGeneratorT
     > ConstGeneratorT ConstIndirectArrayList<HandleT, PoolT, ConstValueT, ConstGeneratorT>::generator() const {
-        return ConstGeneratorT(base, base + size, pool);
+        return ConstGeneratorT(base, base + maxSize, pool);
+    }
+
+    template<typename HandleT, typename PoolT, typename ConstValueT, typename ConstGeneratorT>
+    int32_t ConstIndirectArrayList<HandleT, PoolT, ConstValueT, ConstGeneratorT>::size() const {
+        return maxSize;
     }
 
     template<
@@ -67,18 +72,23 @@ namespace ECTL::Internals::IndirectArrayList {
             typename GeneratorT, typename ConstListT
     > IndirectArrayList<HandleT, PoolT, ValueT, ConstValueT, GeneratorT, ConstListT>::IndirectArrayList(
             const HandleT *base, int32_t size, PoolT *pool
-    ) : base(base), size(size), pool(pool)  { }
+    ) : base(base), maxSize(size), pool(pool)  { }
 
     template<
             typename HandleT, typename PoolT,
             typename ValueT, typename ConstValueT,
             typename GeneratorT, typename ConstListT
     > GeneratorT IndirectArrayList<HandleT, PoolT, ValueT, ConstValueT, GeneratorT, ConstListT>::generator() const {
-        return GeneratorT(base, base + size, pool);
+        return GeneratorT(base, base + maxSize, pool);
     }
 
     template<typename HandleT, typename PoolT, typename ValueT, typename ConstValueT, typename GeneratorT, typename ConstListT>
     IndirectArrayList<HandleT, PoolT, ValueT, ConstValueT, GeneratorT, ConstListT>::operator ConstListT() const {
         return ConstListT(base, size, pool);
+    }
+
+    template<typename HandleT, typename PoolT, typename ValueT, typename ConstValueT, typename GeneratorT, typename ConstListT>
+    int32_t IndirectArrayList<HandleT, PoolT, ValueT, ConstValueT, GeneratorT, ConstListT>::size() const {
+        return maxSize;
     }
 }
